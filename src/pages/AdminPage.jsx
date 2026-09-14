@@ -1,0 +1,13 @@
+import { useEffect, useState } from 'react'
+import { CheckCircle2, Loader2, Shield } from 'lucide-react'
+import { apiFetch } from '../lib/api'
+
+export default function AdminPage() {
+  const [summary, setSummary] = useState(null)
+  const [users, setUsers] = useState([])
+  const [error, setError] = useState('')
+  const load = async () => { try { const [summaryData, usersData] = await Promise.all([apiFetch('/admin/summary'), apiFetch('/admin/users')]); setSummary(summaryData.data); setUsers(usersData.data) } catch (err) { setError(err.message) } }
+  useEffect(() => { load() }, [])
+  const updateStatus = async (id, verificationStatus) => { try { await apiFetch(`/admin/users/${id}/status`, { method: 'PATCH', body: JSON.stringify({ verificationStatus }) }); load() } catch (err) { setError(err.message) } }
+  return <div className="mx-auto min-h-[calc(100vh-12rem)] max-w-7xl space-y-8 px-4 py-10 sm:px-6 lg:px-8"><header><span className="text-xs font-bold uppercase tracking-widest text-amber-400">Administration</span><h1 className="mt-2 text-3xl font-black text-white">System oversight</h1><p className="mt-2 text-sm text-slate-400">Manage accounts and verification through protected backend actions.</p></header>{error && <p className="rounded-xl border border-red-500/30 bg-red-950/50 p-3 text-sm text-red-200">{error}</p>}{summary ? <div className="grid gap-4 sm:grid-cols-4">{Object.entries(summary).map(([label, value]) => <div key={label} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-3xl font-black text-white">{value}</p><p className="mt-1 text-xs capitalize text-slate-400">{label}</p></div>)}</div> : <Loader2 className="h-5 w-5 animate-spin text-cyan-400" />}<section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6"><h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-white"><Shield className="h-5 w-5 text-amber-400" />Accounts</h2><div className="space-y-3">{users.map((user) => <div key={user._id} className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 py-3"><div><p className="text-sm font-semibold text-white">{user.name || user.organizationName}</p><p className="text-xs text-slate-500">{user.email} · {user.role}</p></div>{user.role === 'NGO' ? <select value={user.verificationStatus} onChange={(event) => updateStatus(user._id, event.target.value)} className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white"><option>PENDING</option><option>VERIFIED</option><option>REJECTED</option><option>SUSPENDED</option></select> : <span className="flex items-center gap-1 text-xs text-emerald-300"><CheckCircle2 className="h-4 w-4" />{user.verificationStatus}</span>}</div>)}</div></section></div>
+}

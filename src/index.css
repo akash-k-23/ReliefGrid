@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --brand-dark: #070b14;
+    --brand-navy: #0b1120;
+    --brand-surface: #111827;
+    --brand-border: #1e293b;
+    --accent-red: #ef4444;
+    --accent-cyan: #06b6d4;
+    --accent-emerald: #10b981;
+    --accent-amber: #f59e0b;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #070b14;
+    color: #f1f5f9;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0b1120;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+  }
+}
+
+.page-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+  background: #07111f;
+  --parallax-x: 0px;
+  --parallax-y: 0px;
+}
+
+.page-background__wash,
+.page-background__atmosphere {
+  position: absolute;
+  inset: 0;
+}
+
+.page-background__image {
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.12) contrast(1.06) brightness(1.04);
+  transform: translate3d(var(--parallax-x), var(--parallax-y), 0);
+  transition: transform 700ms cubic-bezier(.16, 1, .3, 1);
+}
+
+.page-background__wash {
+  z-index: 1;
+  background: linear-gradient(90deg, rgba(3, 8, 19, 0.44) 0%, rgba(3, 8, 19, 0.1) 48%, rgba(3, 8, 19, 0.36) 100%), linear-gradient(180deg, rgba(2, 8, 18, 0.12), rgba(2, 8, 18, 0.38));
+}
+
+.page-background__atmosphere {
+  z-index: 2;
+  opacity: .18;
+  background: radial-gradient(ellipse at 50% 115%, var(--page-accent), transparent 56%);
+  mix-blend-mode: screen;
+  animation: cinematic-atmosphere 16s ease-in-out infinite;
+}
+
+.page-background--cyan { --page-accent: #06b6d4; }
+.page-background--blue { --page-accent: #3b82f6; }
+.page-background--emerald { --page-accent: #10b981; }
+.page-background--amber { --page-accent: #f59e0b; }
+.page-background--red { --page-accent: #ef4444; }
+.page-background--teal { --page-accent: #14b8a6; }
+.page-background--violet { --page-accent: #8b5cf6; }
+
+@keyframes cinematic-atmosphere {
+  50% { opacity: .28; transform: translate3d(1.5%, -1%, 0) scale(1.04); }
+}
+
+@media (max-width: 640px) {
+  .page-background__image { object-position: 58% center !important; }
+  .page-background__atmosphere { opacity: .11; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-background__image { transform: none; }
+  .page-background__atmosphere { animation: none; }
+}
+
+/* Route-scoped cinematic glass treatment: these selectors affect only the
+   four response views that opt into a page theme. */
+.relief-page :is(header, section, form) {
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  box-shadow: 0 18px 48px rgba(1, 7, 20, .34);
+}
+.relief-page--home :is(header, section) { border-color: rgba(45, 212, 255, .27); background-color: rgba(5, 20, 41, .72); }
+.relief-page--home > .grid > div { border-color: rgba(48, 193, 255, .24); background-color: rgba(5, 22, 43, .64); }
+.relief-page--request :is(form, section) { border-color: rgba(251, 146, 60, .28); background-color: rgba(19, 15, 31, .78); }
+.relief-page--request input, .relief-page--request select, .relief-page--request textarea { border-color: rgba(251, 146, 60, .3); background-color: rgba(7, 17, 34, .82); }
+.relief-page--explore :is(section, input) { border-color: rgba(45, 212, 191, .3); background-color: rgba(5, 19, 42, .76); }
+.relief-page--game > :not(.text-center) { border-color: rgba(110, 231, 183, .28); }
+.relief-page--game .bg-slate-900\/80, .relief-page--game .bg-slate-900\/90 { background-color: rgba(7, 28, 37, .8); }
+.relief-page :is(a, button) { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.relief-page :is(a, button):hover { box-shadow: 0 10px 24px rgba(3, 10, 26, .35); }
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-panel-hover:hover {
+  background: rgba(30, 41, 59, 0.75);
+  border-color: rgba(6, 182, 212, 0.35);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(6, 182, 212, 0.15);
+}
+
+/* Electric border effect for high-priority emergency highlights */
+@keyframes electric-glow {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.electric-border-wrapper {
+  position: relative;
+  border-radius: 1rem;
+  padding: 1.5px;
+  background: linear-gradient(90deg, #ef4444, #06b6d4, #3b82f6, #ef4444);
+  background-size: 300% 300%;
+  animation: electric-glow 4s ease infinite;
+}
+
+.electric-border-inner {
+  border-radius: calc(1rem - 1.5px);
+  background: #0b1329;
+  height: 100%;
+  width: 100%;
+}
