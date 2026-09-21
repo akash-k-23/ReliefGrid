@@ -17,8 +17,12 @@ ReliefGrid is a JavaScript humanitarian coordination platform for relief request
 
 ## Setup on Windows
 
+Install each app separately. Use two terminals from the project root.
+
 ```powershell
-Copy-Item .env.example .env
+Copy-Item backend\.env.example backend\.env
+Copy-Item frontend\.env.example frontend\.env
+Set-Location frontend
 npm install
 npm run dev
 ```
@@ -26,34 +30,39 @@ npm run dev
 In a second terminal:
 
 ```powershell
-npm run server
+Set-Location backend
+npm install
+npm run dev
 ```
 
 ## Setup on Ubuntu
 
 ```bash
-cp .env.example .env
-npm install
-npm run dev
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+npm --prefix frontend install
+npm --prefix backend install
+npm --prefix frontend run dev
 ```
 
 In a second terminal:
 
 ```bash
-npm run server
+npm --prefix backend run dev
 ```
 
-The commands and application paths are platform-independent. Configure MongoDB separately using the package manager or official MongoDB instructions for your Ubuntu release.
+The frontend is in `frontend/` and the backend is in `backend/`. Configure MongoDB separately using the package manager or official MongoDB instructions for your Ubuntu release.
 
 ## Environment
 
-Copy `.env.example` to `.env` and replace every example secret or SMTP value:
+Copy each example file to the matching app and replace every example secret or SMTP value.
+
+`backend/.env`:
 
 ```env
 MONGODB_URI=mongodb://127.0.0.1:27017/reliefgrid
 JWT_SECRET=replace-with-a-long-random-secret
 PORT=5000
-VITE_API_URL=http://localhost:5000
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=your-smtp-username
@@ -62,13 +71,19 @@ SMTP_FROM=ReliefGrid <no-reply@example.com>
 CLIENT_URL=http://localhost:5173
 ```
 
+`frontend/.env`:
+
+```env
+VITE_API_URL=http://localhost:5000
+```
+
 Never commit `.env`. SMTP configuration is required for forgot-password requests for existing users. Reset tokens are hashed in MongoDB, expire after 15 minutes, and are invalidated after a successful reset.
 
 ## Verification
 
 ```bash
-npm run build
-npm run lint
+npm --prefix frontend run build
+npm --prefix frontend run lint
 ```
 
 The API is available at `http://localhost:5000/api` and the frontend at `http://localhost:5173` during development.
@@ -101,4 +116,4 @@ Use an SMTP provider that supports authenticated submission on port `587` with S
 - Use secure, HTTP-only cookies and review `SameSite` behavior when frontend and API origins differ.
 - Restrict MongoDB network access and create least-privilege database credentials.
 - Rotate SMTP, database, and JWT credentials if they are exposed.
-- Run `npm run build` and `npm run lint` in CI before deployment.
+- Run `npm --prefix frontend run build` and `npm --prefix frontend run lint` in CI before deployment.

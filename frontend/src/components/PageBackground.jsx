@@ -16,6 +16,7 @@ const backgrounds = {
   admin: { label: 'secure emergency operations room', tone: 'blue', image: asset('secure-emergency-control.jpg'), position: '55% center' },
   profile: { label: 'connected humanitarian community', tone: 'amber', image: asset('community-relief-distribution.jpg'), position: '55% center' },
   explore: { label: 'wide disaster response network panorama', tone: 'cyan', image: asset('landing-disaster-command.png'), position: 'center center' },
+  locations: { label: 'emergency response location network', tone: 'emerald', image: asset('operations-disaster-center.jpg'), position: 'center center' },
   game: { label: 'disaster-preparedness safety training environment', tone: 'emerald', image: asset('preparedness-safety-training.jpg'), position: 'center center' },
   results: { label: 'humanitarian recovery operations', tone: 'amber', image: asset('community-relief-distribution.jpg'), position: 'center center' },
   forgot: { label: 'secure emergency control room', tone: 'blue', image: asset('secure-emergency-control.jpg'), position: 'center center' },
@@ -43,7 +44,7 @@ export default function PageBackground({ variant = 'operations' }) {
   }, [reduceMotion])
 
   return (
-    <div ref={rootRef} className={`page-background page-background--${config.tone}`} aria-hidden="true">
+    <div ref={rootRef} className={`page-background page-background--${config.tone} page-background--${variant}`} aria-hidden="true">
       <motion.img
         className="page-background__image"
         src={config.image}

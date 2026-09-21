@@ -84,6 +84,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/locations" className="hover:text-emerald-400 transition-colors">
+                  Location Tracer (Demo)
+                </Link>
+              </li>
+              <li>
                 <Link to="/game" className="hover:text-cyan-400 transition-colors">
                   Disaster Preparedness Game
                 </Link>

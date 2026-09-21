@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertTriangle, CheckCircle2, Loader2, MapPin, Send } from 'lucide-react'
 import { apiFetch } from '../lib/api'
+import { demoRequests } from '../data/reliefGridDemoData'
 
 const inputClass = 'w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-white outline-none focus:border-cyan-400'
 
@@ -9,7 +10,7 @@ export default function RequestPage() {
   const [requests, setRequests] = useState([])
   const [form, setForm] = useState({ title: '', category: 'Medical', urgency: 'HIGH', description: '', location: '', latitude: '', longitude: '', contactPhone: '', peopleAffected: 1, requiredResources: '' })
   const [state, setState] = useState({ loading: true, submitting: false, error: '', success: '' })
-  const load = async () => { try { const data = await apiFetch('/requests/my'); setRequests(data.data) } catch (error) { setState((s) => ({ ...s, error: error.message })) } finally { setState((s) => ({ ...s, loading: false })) } }
+  const load = async () => { try { const data = await apiFetch('/requests/my'); setRequests(data.data?.length ? data.data : demoRequests.slice(0, 8)) } catch (error) { setRequests(demoRequests.slice(0, 8)); setState((s) => ({ ...s, error: error.message })) } finally { setState((s) => ({ ...s, loading: false })) } }
   useEffect(() => { load() }, [])
   const update = (event) => setForm({ ...form, [event.target.name]: event.target.value })
   const submit = async (event) => { event.preventDefault(); setState({ loading: false, submitting: true, error: '', success: '' }); try { await apiFetch('/requests', { method: 'POST', body: JSON.stringify({ ...form, peopleAffected: Number(form.peopleAffected) }) }); setForm({ ...form, title: '', description: '', location: '', requiredResources: '' }); setState({ loading: false, submitting: false, error: '', success: 'Request submitted to the relief coordination queue.' }); load() } catch (error) { setState({ loading: false, submitting: false, error: error.message, success: '' }) } }

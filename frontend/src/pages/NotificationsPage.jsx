@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Bell, Check, Loader2 } from 'lucide-react'
 import { apiFetch } from '../lib/api'
+import { demoNotifications } from '../data/reliefGridDemoData'
 
 export default function NotificationsPage() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const load = () => apiFetch('/notifications').then((data) => setItems(data.data)).catch((err) => setError(err.message)).finally(() => setLoading(false))
+  const load = () => apiFetch('/notifications').then((data) => setItems(data.data?.length ? data.data : demoNotifications)).catch((err) => { setError(err.message); setItems(demoNotifications) }).finally(() => setLoading(false))
   useEffect(() => { load() }, [])
   const markAll = async () => { await apiFetch('/notifications/read-all', { method: 'PATCH' }); load() }
   const markRead = async (id) => { await apiFetch(`/notifications/${id}/read`, { method: 'PATCH' }); load() }

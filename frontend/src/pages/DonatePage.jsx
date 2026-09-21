@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle2, HandHeart, Loader2, Search } from 'lucide-react'
 import { apiFetch } from '../lib/api'
+import { demoRequests } from '../data/reliefGridDemoData'
 
 const inputClass = 'w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-white outline-none focus:border-cyan-400'
 
@@ -18,9 +19,10 @@ export default function DonatePage() {
         apiFetch(`/requests/public?status=PENDING&search=${encodeURIComponent(query)}&limit=50`),
         apiFetch('/donations/my'),
       ])
-      setRequests(requestData.data)
-      setHistory(historyData.data)
+      setRequests(requestData.data?.length ? requestData.data : demoRequests)
+      setHistory(historyData.data || [])
     } catch (error) {
+      setRequests(demoRequests)
       setState((current) => ({ ...current, error: error.message }))
     } finally {
       setState((current) => ({ ...current, loading: false }))
@@ -43,7 +45,7 @@ export default function DonatePage() {
   }
 
   return (
-    <div className="mx-auto min-h-[calc(100vh-12rem)] max-w-6xl space-y-8 px-4 py-10 sm:px-6 lg:px-8">
+    <div className="relief-page relief-page--donate mx-auto min-h-[calc(100vh-12rem)] max-w-6xl space-y-8 px-4 py-10 sm:px-6 lg:px-8">
       <header><span className="text-xs font-bold uppercase tracking-widest text-cyan-400">Support the response</span><h1 className="mt-2 text-3xl font-black text-white">Commit support to an active request</h1><p className="mt-2 text-sm text-slate-400">This records an offline contribution commitment, not a payment transaction.</p></header>
       {state.message && <p className="flex gap-2 rounded-xl border border-emerald-500/30 bg-emerald-950/50 p-3 text-sm text-emerald-200"><CheckCircle2 className="h-4 w-4" />{state.message}</p>}
       {state.error && <p className="rounded-xl border border-red-500/30 bg-red-950/50 p-3 text-sm text-red-200">{state.error}</p>}

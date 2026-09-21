@@ -21,9 +21,12 @@ import NotFoundPage from './pages/NotFoundPage'
 import AdminPage from './pages/AdminPage'
 import NgoPage from './pages/NgoPage'
 import NotificationsPage from './pages/NotificationsPage'
+import LocationsPage from './pages/LocationsPage'
 import PageBackground from './components/PageBackground'
 import ReliefGridParticleBackground from './components/ReliefGridParticleBackground'
+import DisasterArrivalEffect from './components/DisasterArrivalEffect'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { useAdaptiveMode } from './hooks/useAdaptiveMode'
 
 // Automatically scrolls window to top on route change
 function ScrollToTop() {
@@ -83,8 +86,8 @@ function PublicOnlyRoute({ children }) {
 
 function AppBackground() {
   const { pathname } = useLocation()
-  const variant = pathname === '/' ? 'landing' : pathname === '/login' ? 'login' : pathname === '/register' ? 'register' : pathname === '/home' ? 'operations' : pathname === '/request' ? 'request' : pathname === '/donate' ? 'donor' : pathname === '/volunteer' ? 'volunteer' : pathname === '/explore' ? 'explore' : pathname === '/game' ? 'game' : pathname === '/profile' ? 'profile' : pathname === '/ngo' ? 'ngo' : pathname === '/admin' ? 'admin' : pathname === '/forgot-password' ? 'forgot' : pathname === '/reset-password' ? 'reset' : 'operations'
-  return <><ReliefGridParticleBackground variant={pathname === '/' ? 'hero' : 'subtle'} /><PageBackground variant={variant} /></>
+  const variant = pathname === '/' ? 'landing' : pathname === '/login' ? 'login' : pathname === '/register' ? 'register' : pathname === '/home' ? 'operations' : pathname === '/request' ? 'request' : pathname === '/donate' ? 'donor' : pathname === '/volunteer' ? 'volunteer' : pathname === '/explore' ? 'explore' : pathname === '/locations' ? 'locations' : pathname === '/game' ? 'game' : pathname === '/profile' ? 'profile' : pathname === '/ngo' ? 'ngo' : pathname === '/admin' ? 'admin' : pathname === '/forgot-password' ? 'forgot' : pathname === '/reset-password' ? 'reset' : 'operations'
+  return <><ReliefGridParticleBackground variant={pathname === '/' ? 'hero' : 'subtle'} /><PageBackground variant={variant} />{pathname === '/' && <DisasterArrivalEffect />}</>
 }
 
 function AppRoutes() {
@@ -166,6 +169,16 @@ function AppRoutes() {
           }
         />
         <Route
+          path="/locations"
+          element={
+            <ProtectedRoute>
+              <AnimatedPage>
+                <LocationsPage />
+              </AnimatedPage>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/game"
           element={
             <AnimatedPage>
@@ -183,20 +196,16 @@ function AppRoutes() {
   )
 }
 
-export default function App() {
+function AppShell() {
+  const { mode } = useAdaptiveMode()
+  const { pathname } = useLocation()
+  const routeName = pathname === '/' ? 'landing' : pathname.slice(1).split('/')[0] || 'operations'
+
   return (
-    <AuthProvider>
-      <Router>
-        <ScrollToTop />
-        <div className="relative flex min-h-screen flex-col bg-[#07111f] text-slate-100 selection:bg-cyan-500/20 selection:text-cyan-300">
-          <AppBackground />
-          <Navbar />
-          <main className="relative z-10 flex flex-1 flex-col">
-            <AppRoutes />
-          </main>
-          <div className="relative z-10"><Footer /></div>
-        </div>
-      </Router>
-    </AuthProvider>
+    <><ScrollToTop /><div className={`reliefgrid-mode-${mode} reliefgrid-route-${routeName} relative flex min-h-screen flex-col bg-[#07111f] text-slate-100 selection:bg-cyan-500/20 selection:text-cyan-300`}><AppBackground /><Navbar /><main className={`relative z-10 flex flex-1 flex-col ${pathname === '/' ? '' : 'lg:pl-72'}`}><AppRoutes /></main><div className={`relative z-10 ${pathname === '/' ? '' : 'lg:pl-72'}`}><Footer /></div></div></>
   )
+}
+
+export default function App() {
+  return <AuthProvider><Router><AppShell /></Router></AuthProvider>
 }
