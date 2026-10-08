@@ -4,16 +4,20 @@ import { motion, AnimatePresence } from 'motion/react'
 import {
   User,
   Building2,
-  FileText,
-  UploadCloud,
   CheckCircle2,
-  ShieldCheck,
   AlertCircle,
   ArrowLeft,
-  Check
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { apiFetch } from '../lib/api'
+
+function friendlyRegistrationError(error) {
+  const message = String(error.message || '').toLowerCase()
+  if (message.includes('email is already registered')) return 'An account with this email already exists. Sign in or use another email.'
+  if (message.includes('password must be at least 8 characters')) return 'Choose a password with at least 8 characters.'
+  if (message.includes('required fields') || message.includes('name is required') || message.includes('organization name is required')) return 'Please complete all required fields and try again.'
+  return 'We could not complete registration right now. Please check your details and try again.'
+}
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -44,22 +48,7 @@ export default function RegisterPage() {
     confirmPassword: '',
   })
 
-  const [proofFile, setProofFile] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
-
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-
-      if (file.size > 10 * 1024 * 1024) {
-        setErrorMessage('Proof document must be smaller than 10MB.')
-        return
-      }
-
-      setProofFile(file)
-      setErrorMessage('')
-    }
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -69,11 +58,6 @@ export default function RegisterPage() {
 
     if (current.password !== current.confirmPassword) {
       setErrorMessage('Passwords do not match. Please re-check.')
-      return
-    }
-
-    if (role === 'ngo' && !proofFile) {
-      setErrorMessage('Please select a proof document for NGO verification.')
       return
     }
 
@@ -100,7 +84,6 @@ export default function RegisterPage() {
               phone: ngoForm.phone,
               password: ngoForm.password,
               location: ngoForm.location,
-              proofDocument: proofFile ? proofFile.name : null,
             }
 
       const data = await apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(payload) })
@@ -108,14 +91,14 @@ export default function RegisterPage() {
       setUser(data.user)
       navigate('/home')
     } catch (error) {
-      setErrorMessage(error.message || 'Unable to connect to the ReliefGrid server.')
+      setErrorMessage(friendlyRegistrationError(error))
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-[calc(100vh-12rem)] py-12 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto space-y-6">
+    <div className="auth-scene auth-scene--register min-h-[calc(100vh-12rem)] py-12 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto space-y-6">
       <Link
         to="/"
         className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-cyan-400 transition-colors group"
@@ -128,7 +111,7 @@ export default function RegisterPage() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="rounded-3xl bg-slate-900/80 border border-slate-800 p-6 sm:p-10 backdrop-blur-xl shadow-2xl space-y-8"
+        className="auth-scene__card rounded-3xl bg-slate-900/80 border border-slate-800 p-6 sm:p-10 backdrop-blur-xl shadow-2xl space-y-8"
       >
         <div className="text-center space-y-2">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -139,19 +122,7 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-cyan-500/20 text-xs text-slate-300 flex items-start gap-3">
-          <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-          <div className="space-y-1 text-[11px] text-slate-400">
-            <p>
-              <strong className="text-cyan-300">Secure Registration:</strong> Your account is securely processed by the ReliefGrid backend.
-            </p>
-            <p>
-              Passwords are hashed before being stored and authentication uses a secure HTTP-only session cookie.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800 relative">
+        <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800 relative">
           <button
             type="button"
             onClick={() => {
@@ -171,27 +142,6 @@ export default function RegisterPage() {
             )}
             <User className="w-4 h-4" />
             <span>Individual</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setRole('volunteer')
-              setSubmitted(false)
-              setErrorMessage('')
-            }}
-            className={`relative flex items-center justify-center gap-2 py-3 rounded-xl text-xs sm:text-sm font-bold transition-colors z-10 ${
-              role === 'volunteer' ? 'text-emerald-300' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            {role === 'volunteer' && (
-              <motion.div
-                layoutId="register-role-pill"
-                className="absolute inset-0 rounded-xl bg-slate-800 border border-slate-700 shadow-md -z-10"
-              />
-            )}
-            <User className="w-4 h-4" />
-            <span>Volunteer</span>
           </button>
 
           <button
@@ -499,46 +449,6 @@ export default function RegisterPage() {
                       />
                     </div>
 
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Proof of Registration Document (PDF / Image)
-                    </label>
-
-                    <motion.div
-                      whileHover={{ scale: 1.01 }}
-                      className="relative border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-2xl p-6 text-center bg-slate-950/50 transition-colors cursor-pointer"
-                    >
-                      <input
-                        type="file"
-                        accept=".pdf,.png,.jpg,.jpeg"
-                        onChange={handleFileChange}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                      />
-
-                      <div className="flex flex-col items-center justify-center space-y-2">
-                        <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-emerald-400">
-                          <UploadCloud className="w-6 h-6 animate-pulse" />
-                        </div>
-
-                        <div className="text-xs text-slate-300">
-                          {proofFile ? (
-                            <div className="flex items-center gap-2 text-emerald-300 font-semibold">
-                              <FileText className="w-4 h-4" />
-                              <span>{proofFile.name} ({(proofFile.size / 1024).toFixed(1)} KB)</span>
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            </div>
-                          ) : (
-                            <span>Click to browse or drag &amp; drop registration certificate</span>
-                          )}
-                        </div>
-
-                        <p className="text-[10px] text-slate-500">
-                          Accepts PDF, JPG, PNG up to 10MB
-                        </p>
-                      </div>
-                    </motion.div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

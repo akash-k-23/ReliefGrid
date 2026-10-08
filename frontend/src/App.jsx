@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import Navbar from './components/Navbar'
@@ -11,17 +11,20 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
-import RequestPage from './pages/RequestPage'
 import DonatePage from './pages/DonatePage'
-import VolunteerPage from './pages/VolunteerPage'
-import ExplorePage from './pages/ExplorePage'
+const RequestPage = lazy(() => import('./pages/RequestPage'))
+const VolunteerPage = lazy(() => import('./pages/VolunteerPage'))
+const LocationsPage = lazy(() => import('./pages/LocationsPage'))
 import GamePage from './pages/GamePage'
 import ProfilePage from './pages/ProfilePage'
 import NotFoundPage from './pages/NotFoundPage'
 import AdminPage from './pages/AdminPage'
 import NgoPage from './pages/NgoPage'
-import NotificationsPage from './pages/NotificationsPage'
-import LocationsPage from './pages/LocationsPage'
+import EmergencyContactsPage from './pages/EmergencyContactsPage'
+import EmergencyRequestPage from './pages/EmergencyRequestPage'
+import EmergencyAdminPanel from './components/EmergencyAdminPanel'
+import AdminVerificationPanel from './components/AdminVerificationPanel'
+import EligibleAlertUsersPanel from './components/EligibleAlertUsersPanel'
 import PageBackground from './components/PageBackground'
 import ReliefGridParticleBackground from './components/ReliefGridParticleBackground'
 import DisasterArrivalEffect from './components/DisasterArrivalEffect'
@@ -40,15 +43,17 @@ function ScrollToTop() {
 // Lightweight, rapid page transition wrapper (0.2s) for crisp navigation
 function AnimatedPage({ children }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -6 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
-      className="w-full flex-1"
-    >
-      {children}
-    </motion.div>
+    <Suspense fallback={<RouteLoading />}>
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -6 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        className="w-full flex-1"
+      >
+        {children}
+      </motion.div>
+    </Suspense>
   )
 }
 
@@ -86,8 +91,8 @@ function PublicOnlyRoute({ children }) {
 
 function AppBackground() {
   const { pathname } = useLocation()
-  const variant = pathname === '/' ? 'landing' : pathname === '/login' ? 'login' : pathname === '/register' ? 'register' : pathname === '/home' ? 'operations' : pathname === '/request' ? 'request' : pathname === '/donate' ? 'donor' : pathname === '/volunteer' ? 'volunteer' : pathname === '/explore' ? 'explore' : pathname === '/locations' ? 'locations' : pathname === '/game' ? 'game' : pathname === '/profile' ? 'profile' : pathname === '/ngo' ? 'ngo' : pathname === '/admin' ? 'admin' : pathname === '/forgot-password' ? 'forgot' : pathname === '/reset-password' ? 'reset' : 'operations'
-  return <><ReliefGridParticleBackground variant={pathname === '/' ? 'hero' : 'subtle'} /><PageBackground variant={variant} />{pathname === '/' && <DisasterArrivalEffect />}</>
+  const scene = pathname === '/' ? 'landing' : pathname.slice(1)
+  return <><ReliefGridParticleBackground variant={pathname === '/' ? 'hero' : 'subtle'} />{['landing', 'login', 'register'].includes(scene) && <PageBackground variant={scene} />}{pathname === '/home' && <PageBackground variant="operations" />}{pathname === '/donate' && <PageBackground variant="donor" />}{pathname === '/' && <DisasterArrivalEffect />}</>
 }
 
 function AppRoutes() {
@@ -128,6 +133,8 @@ function AppRoutes() {
         />
         <Route path="/forgot-password" element={<AnimatedPage><ForgotPasswordPage /></AnimatedPage>} />
         <Route path="/reset-password" element={<AnimatedPage><ResetPasswordPage /></AnimatedPage>} />
+        <Route path="/emergency-contacts" element={<AnimatedPage><EmergencyContactsPage /></AnimatedPage>} />
+        <Route path="/requests/:id" element={<ProtectedRoute><AnimatedPage><EmergencyRequestPage /></AnimatedPage></ProtectedRoute>} />
         <Route
           path="/request"
           element={
@@ -151,21 +158,11 @@ function AppRoutes() {
         <Route
           path="/volunteer"
           element={
-            <ProtectedRoute>
+            <RoleRoute roles={['VOLUNTEER']}>
               <AnimatedPage>
                 <VolunteerPage />
               </AnimatedPage>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/explore"
-          element={
-            <ProtectedRoute>
-              <AnimatedPage>
-                <ExplorePage />
-              </AnimatedPage>
-            </ProtectedRoute>
+            </RoleRoute>
           }
         />
         <Route
@@ -187,9 +184,8 @@ function AppRoutes() {
           }
         />
         <Route path="/profile" element={<ProtectedRoute><AnimatedPage><ProfilePage /></AnimatedPage></ProtectedRoute>} />
-        <Route path="/notifications" element={<ProtectedRoute><AnimatedPage><NotificationsPage /></AnimatedPage></ProtectedRoute>} />
         <Route path="/ngo" element={<RoleRoute roles={['NGO']}><AnimatedPage><NgoPage /></AnimatedPage></RoleRoute>} />
-        <Route path="/admin" element={<RoleRoute roles={['ADMIN']}><AnimatedPage><AdminPage /></AnimatedPage></RoleRoute>} />
+        <Route path="/admin" element={<RoleRoute roles={['ADMIN']}><AnimatedPage><><AdminPage /><div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8"><EmergencyAdminPanel /></div><AdminVerificationPanel /><EligibleAlertUsersPanel /></></AnimatedPage></RoleRoute>} />
         <Route path="*" element={<AnimatedPage><NotFoundPage /></AnimatedPage>} />
       </Routes>
     </AnimatePresence>
@@ -199,10 +195,15 @@ function AppRoutes() {
 function AppShell() {
   const { mode } = useAdaptiveMode()
   const { pathname } = useLocation()
+  const [theme, setTheme] = useState(() => window.localStorage.getItem('reliefgrid-theme') || 'dark')
   const routeName = pathname === '/' ? 'landing' : pathname.slice(1).split('/')[0] || 'operations'
 
+  useEffect(() => {
+    window.localStorage.setItem('reliefgrid-theme', theme)
+  }, [theme])
+
   return (
-    <><ScrollToTop /><div className={`reliefgrid-mode-${mode} reliefgrid-route-${routeName} relative flex min-h-screen flex-col bg-[#07111f] text-slate-100 selection:bg-cyan-500/20 selection:text-cyan-300`}><AppBackground /><Navbar /><main className={`relative z-10 flex flex-1 flex-col ${pathname === '/' ? '' : 'lg:pl-72'}`}><AppRoutes /></main><div className={`relative z-10 ${pathname === '/' ? '' : 'lg:pl-72'}`}><Footer /></div></div></>
+    <><ScrollToTop /><div className={`reliefgrid-app reliefgrid-theme-${theme} reliefgrid-mode-${mode} reliefgrid-route-${routeName} relative flex min-h-screen flex-col bg-[#07111f] text-slate-100 selection:bg-cyan-500/20 selection:text-cyan-300`}><AppBackground /><Navbar theme={theme} onToggleTheme={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')} /><main className={`relative z-10 flex flex-1 flex-col ${pathname === '/' ? '' : 'lg:pl-72'}`}><AppRoutes /></main><div className={`relative z-10 ${pathname === '/' ? '' : 'lg:pl-72'}`}><Footer /></div></div></>
   )
 }
 

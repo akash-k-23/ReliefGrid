@@ -1,6 +1,7 @@
 import ReliefRequest from "../models/ReliefRequest.js";
 import User from "../models/User.js";
 import { createNotification } from "../services/notificationService.js";
+import { cancelRequestAlerts, notifyRequestAlerts } from "./emergencyController.js";
 
 const requestStatuses = ["PENDING", "REVIEWED", "IN_PROGRESS", "ASSIGNED", "RESOLVED", "CANCELLED"];
 const editableFields = ["title", "description", "disasterType", "urgency", "category", "peopleAffected", "location", "latitude", "longitude", "contactPhone", "requiredResources"];
@@ -12,6 +13,7 @@ const filterFields = (body, fields) => Object.fromEntries(
 export const createRequest = async (req, res) => {
   try {
     const request = await ReliefRequest.create({ ...filterFields(req.body, editableFields), requester: req.user._id });
+    await notifyRequestAlerts(request);
     const ngos = await User.find({ role: "NGO", verificationStatus: "VERIFIED" }).select("_id");
     await Promise.all(ngos.map((ngo) => createNotification({ user: ngo._id, type: "REQUEST_CREATED", message: `New relief request: ${request.title}` })));
     res.status(201).json({ success: true, message: "Relief request submitted", data: request });
@@ -26,7 +28,7 @@ export const listRequests = async (req, res) => {
     if (req.query.status) filter.status = req.query.status;
     if (req.query.urgency) filter.urgency = req.query.urgency;
     if (req.query.category) filter.category = req.query.category;
-    const requests = await ReliefRequest.find(filter).populate("requester", "name organizationName location").populate("assignedOrganization", "organizationName name").sort({ createdAt: -1 });
+    const requests = await ReliefRequest.find(filter).select("-contactPhone").populate("requester", "name organizationName location").populate("assignedOrganization", "organizationName name").sort({ createdAt: -1 });
     res.json({ success: true, data: requests });
   } catch (error) { res.status(500).json({ success: false, message: "Unable to load requests" }); }
 };
@@ -34,6 +36,7 @@ export const listRequests = async (req, res) => {
 export const listPublicRequests = async (req, res) => {
   try {
     const filter = { status: { $nin: ["RESOLVED", "CANCELLED"] } };
+    filter.requester = { $ne: req.user._id };
     const limit = Math.min(Math.max(Number(req.query.limit) || 25, 1), 100);
     if (req.query.status) {
       if (!requestStatuses.includes(req.query.status)) return res.status(400).json({ success: false, message: "Invalid request status" });
@@ -63,7 +66,7 @@ export const listMyRequests = async (req, res) => {
 };
 
 export const getRequest = async (req, res) => {
-  const request = await ReliefRequest.findById(req.params.id).populate("requester", "name organizationName location phone").populate("assignedOrganization", "organizationName name");
+  const request = await ReliefRequest.findById(req.params.id).select("-contactPhone").populate("requester", "name organizationName location").populate("assignedOrganization", "organizationName name");
   if (!request) return res.status(404).json({ success: false, message: "Request not found" });
   res.json({ success: true, data: request });
 };
@@ -82,7 +85,10 @@ export const updateRequest = async (req, res) => {
   }
   Object.assign(request, updates);
   await request.save();
-  res.json({ success: true, message: "Request updated", data: request });
+  if (["RESOLVED", "CANCELLED"].includes(request.status)) await cancelRequestAlerts(request._id);
+  const responseData = request.toObject();
+  delete responseData.contactPhone;
+  res.json({ success: true, message: "Request updated", data: responseData });
 };
 
 export const updateRequestStatus = async (req, res) => {
@@ -94,7 +100,10 @@ export const updateRequestStatus = async (req, res) => {
     { new: true, runValidators: true }
   );
   if (!request) return res.status(404).json({ success: false, message: "Request not found" });
-  res.json({ success: true, message: "Request status updated", data: request });
+  if (["RESOLVED", "CANCELLED"].includes(request.status)) await cancelRequestAlerts(request._id);
+  const responseData = request.toObject();
+  delete responseData.contactPhone;
+  res.json({ success: true, message: "Request status updated", data: responseData });
 };
 
 export const deleteRequest = async (req, res) => {

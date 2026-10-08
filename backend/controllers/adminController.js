@@ -4,15 +4,27 @@ import VolunteerApplication from "../models/VolunteerApplication.js";
 import Donation from "../models/Donation.js";
 
 export const listUsers = async (req, res) => {
-  const users = await User.find().select("-password -passwordResetToken -passwordResetExpires").sort({ createdAt: -1 }).limit(200);
+  const users = await User.find().select("-password -passwordResetToken -passwordResetExpires -phone -emergencyAlertLocation -phoneVerificationCodeHash -phoneVerificationExpiresAt -phoneVerificationSentAt -phoneVerificationCount -phoneVerificationWindowAt").sort({ createdAt: -1 }).limit(200);
   res.json({ success: true, data: users });
 };
 
 export const updateUserStatus = async (req, res) => {
   const allowed = ["PENDING", "VERIFIED", "REJECTED", "SUSPENDED"];
   if (!allowed.includes(req.body.verificationStatus)) return res.status(400).json({ success: false, message: "Invalid verification status" });
-  const user = await User.findByIdAndUpdate(req.params.id, { verificationStatus: req.body.verificationStatus }, { new: true }).select("-password -passwordResetToken -passwordResetExpires");
+  const user = await User.findById(req.params.id);
   if (!user) return res.status(404).json({ success: false, message: "User not found" });
+  user.verificationStatus = req.body.verificationStatus;
+  if (req.body.verificationStatus === "SUSPENDED") {
+    user.emergencySmsOptIn = false;
+    user.emergencyAlertLocation = undefined;
+    user.phoneVerificationCodeHash = null;
+    user.phoneVerificationExpiresAt = null;
+  }
+  await user.save();
+  user.set("password", undefined);
+  user.set("passwordResetToken", undefined);
+  user.set("passwordResetExpires", undefined);
+  user.set("emergencyAlertLocation", undefined);
   res.json({ success: true, data: user });
 };
 
@@ -22,7 +34,7 @@ export const adminSummary = async (req, res) => {
 };
 
 export const listAdminRequests = async (req, res) => {
-  const requests = await ReliefRequest.find().populate("requester", "name organizationName email").sort({ createdAt: -1 }).limit(200);
+  const requests = await ReliefRequest.find().select("-contactPhone").populate("requester", "name organizationName email").sort({ createdAt: -1 }).limit(200);
   res.json({ success: true, data: requests });
 };
 

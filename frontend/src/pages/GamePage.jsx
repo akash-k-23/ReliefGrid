@@ -123,13 +123,13 @@ export default function GamePage() {
   const progressPercent = ((currentIdx + (isAnswered ? 1 : 0)) / questions.length) * 100
 
   return (
-    <div className="relief-page relief-page--game min-h-[calc(100vh-12rem)] py-10 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto space-y-6">
+    <div className="relief-page relief-page--game game-cinematic min-h-[calc(100vh-12rem)] py-10 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto space-y-6">
       {/* Header */}
       <div className="text-center max-w-xl mx-auto space-y-2">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-950/80 border border-purple-800 text-purple-300 text-xs font-semibold"
+          className="game-badge inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-950/80 border border-purple-800 text-purple-300 text-xs font-semibold"
         >
           <Gamepad2 className="w-4 h-4" />
           <span>Interactive Community Awareness Module</span>

@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "node --watch server.js",
     "start": "node server.js",
-    "server": "node server.js"
+    "server": "node server.js",
+    "test": "node --test test/disasterFeedService.test.js test/impactEmergency.test.js",
+    "migrate:emergency-geo": "node scripts/migrateEmergencyGeo.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

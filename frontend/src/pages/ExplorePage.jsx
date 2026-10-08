@@ -3,7 +3,6 @@ import { AlertTriangle, Loader2, MapPin, Users } from 'lucide-react'
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { apiFetch } from '../lib/api'
-import { demoOpportunities, demoRequests } from '../data/reliefGridDemoData'
 
 export default function ExplorePage() {
   const [requests, setRequests] = useState([])
@@ -14,8 +13,8 @@ export default function ExplorePage() {
 
   useEffect(() => {
     Promise.all([apiFetch('/requests/public?status=PENDING'), apiFetch('/opportunities')])
-      .then(([requestData, opportunityData]) => { setRequests(requestData.data?.length ? requestData.data : demoRequests); setOpportunities(opportunityData.data?.length ? opportunityData.data : demoOpportunities) })
-      .catch((err) => { setError(err.message); setRequests(demoRequests); setOpportunities(demoOpportunities) })
+      .then(([requestData, opportunityData]) => { setRequests(requestData.data || []); setOpportunities(opportunityData.data || []) })
+      .catch((err) => { setError(err.message); setRequests([]); setOpportunities([]) })
       .finally(() => setLoading(false))
   }, [])
 

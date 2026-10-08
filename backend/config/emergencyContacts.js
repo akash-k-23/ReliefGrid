@@ -1,0 +1,13 @@
+export const defaultEmergencyContacts = [
+  { key: "national-emergency-112", name: "National Emergency Number", number: "112", category: "Emergency", availability: "National; mobile connectivity is required", notes: "Single emergency response number. Call directly for urgent help.", isNational: true },
+  { key: "police-100", name: "Police", number: "100", category: "Police", availability: "National legacy number; availability can vary by state/UT", notes: "Use 112 if 100 does not connect.", isNational: true },
+  { key: "fire-101", name: "Fire and Rescue", number: "101", category: "Fire", availability: "National number; local dispatch arrangements vary", notes: "Use 112 if 101 does not connect.", isNational: true },
+  { key: "ambulance-108", name: "Ambulance", number: "108", category: "Medical", availability: "Available in many states/UTs; service coverage varies", notes: "Confirm the local ambulance number where possible.", isNational: false },
+  { key: "ambulance-102", name: "Ambulance and maternal/child health", number: "102", category: "Medical", availability: "State/UT availability and scope vary", notes: "For urgent emergencies, use 112 if this number is unavailable.", isNational: false },
+  { key: "state-disaster-1070", name: "State Disaster Control Room", number: "1070", category: "Disaster", availability: "State/UT control room; confirm local availability", notes: "Not all jurisdictions route this number identically.", isNational: false },
+  { key: "district-disaster-1077", name: "District Disaster Control Room", number: "1077", category: "Disaster", availability: "District control room; confirm local availability", notes: "Coverage depends on the district administration.", isNational: false },
+  { key: "women-181", name: "Womens Helpline", number: "181", category: "Safety", availability: "State/UT availability varies", notes: "If unavailable or in immediate danger, call 112.", isNational: false },
+  { key: "child-1098", name: "Child Helpline", number: "1098", category: "Safety", availability: "National child protection helpline; network availability may vary", notes: "For a child in immediate danger, call 112.", isNational: true },
+  { key: "cyber-fraud-1930", name: "Cybercrime Financial Fraud Helpline", number: "1930", category: "Cybercrime", availability: "National; report promptly after a financial cyber fraud", notes: "Also report at the official National Cyber Crime Reporting Portal.", isNational: true },
+  { key: "lpg-1906", name: "LPG Emergency Helpline", number: "1906", category: "Utilities", availability: "National LPG emergency number; provider response may vary", notes: "For an immediate threat to life, call 112.", isNational: true },
+]

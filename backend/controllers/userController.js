@@ -1,14 +1,24 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 
-const publicUser = (user) => ({ id: user._id, role: user.role, name: user.name, organizationName: user.organizationName, organizationType: user.organizationType, registrationNumber: user.registrationNumber, email: user.email, phone: user.phone, location: user.location, verificationStatus: user.verificationStatus });
+const publicUser = (user) => ({ id: user._id, role: user.role, name: user.name, organizationName: user.organizationName, organizationType: user.organizationType, registrationNumber: user.registrationNumber, email: user.email, phone: user.phone, phoneVerifiedAt: user.phoneVerifiedAt, location: user.location, verificationStatus: user.verificationStatus });
 
 export const getMe = (req, res) => res.json({ success: true, data: publicUser(req.user) });
 
 export const updateMe = async (req, res) => {
   const allowed = ["name", "organizationName", "organizationType", "registrationNumber", "phone", "location"];
   const updates = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowed.includes(key)));
-  const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true, runValidators: true });
+  const user = await User.findById(req.user._id);
+  if (!user) return res.status(404).json({ success: false, message: "User not found" });
+  if (updates.phone !== undefined && updates.phone !== req.user.phone) {
+    user.phoneVerifiedAt = null;
+    user.phoneVerificationCodeHash = null;
+    user.phoneVerificationExpiresAt = null;
+    user.emergencySmsOptIn = false;
+    user.emergencyAlertLocation = undefined;
+  }
+  Object.assign(user, updates);
+  await user.save();
   res.json({ success: true, message: "Profile updated", data: publicUser(user) });
 };
 

@@ -17,7 +17,7 @@ export default function Footer() {
               National Emergency: <strong className="text-white">112</strong>
             </span>
             <span className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded text-amber-300 font-mono">
-              NDMA Disaster Helpline: <strong className="text-white">1078</strong>
+              State Disaster Room: <strong className="text-white">1070</strong>
             </span>
             <span className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded text-cyan-300 font-mono">
               Ambulance: <strong className="text-white">108</strong>
@@ -26,6 +26,7 @@ export default function Footer() {
               Fire & Rescue: <strong className="text-white">101</strong>
             </span>
           </div>
+          <Link to="/emergency-contacts" className="text-cyan-300 underline underline-offset-2">Browse contacts and regional notes</Link>
         </div>
       </div>
 
@@ -63,6 +64,7 @@ export default function Footer() {
                   Dashboard Overview
                 </Link>
               </li>
+              <li><Link to="/emergency-contacts" className="text-red-300 hover:text-red-200">Emergency contacts</Link></li>
               <li>
                 <Link to="/request" className="text-red-400 hover:text-red-300 transition-colors font-medium">
                   Request Emergency Help (SOS)
@@ -76,11 +78,6 @@ export default function Footer() {
               <li>
                 <Link to="/volunteer" className="hover:text-cyan-400 transition-colors">
                   Volunteer Mobilization
-                </Link>
-              </li>
-              <li>
-                <Link to="/explore" className="hover:text-cyan-400 transition-colors">
-                  Explore Relief Map & Activity
                 </Link>
               </li>
               <li>
@@ -109,7 +106,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link to="/register" className="hover:text-cyan-400 transition-colors">
-                  Register Individual / Volunteer
+                  Register Individual
                 </Link>
               </li>
               <li>
@@ -134,15 +131,6 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-10 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <p>© {new Date().getFullYear()} RELIEFGRID Project. All rights reserved. Connecting Help, Delivering Hope.</p>
-          <div className="flex items-center gap-4 text-[11px]">
-            <span>React + Vite</span>
-            <span>•</span>
-            <span>Tailwind CSS</span>
-            <span>•</span>
-            <span>Motion</span>
-            <span>•</span>
-            <span className="text-cyan-400 font-mono">Open-Source</span>
-          </div>
         </div>
       </div>
     </footer>

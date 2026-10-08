@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Activity, AlertTriangle, ChevronRight, Mountain, Waves } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 
@@ -12,18 +12,15 @@ export default function DisasterArrivalEffect() {
   const [visible, setVisible] = useState(true)
   const [closing, setClosing] = useState(false)
 
-  useEffect(() => {
+  const enterReliefGrid = () => {
+    if (closing) return
     if (reduceMotion) {
-      const timer = window.setTimeout(() => setVisible(false), 400)
-      return () => window.clearTimeout(timer)
+      setVisible(false)
+      return
     }
-    const closeTimer = window.setTimeout(() => setClosing(true), 1000)
-    const hideTimer = window.setTimeout(() => setVisible(false), 1500)
-    return () => {
-      window.clearTimeout(closeTimer)
-      window.clearTimeout(hideTimer)
-    }
-  }, [reduceMotion])
+    setClosing(true)
+    window.setTimeout(() => setVisible(false), 600)
+  }
 
   if (!visible) return null
 
@@ -45,8 +42,11 @@ export default function DisasterArrivalEffect() {
         </motion.div>
         <div className="disaster-intro__progress"><span /></div>
         <p>Warning signals become coordinated help.</p>
+        <button type="button" onClick={enterReliefGrid} className="disaster-intro__skip">
+          <span className="disaster-intro__skip-label">Enter Relief Grid</span>
+          <span className="disaster-intro__skip-arrow" aria-hidden="true"><ChevronRight /></span>
+        </button>
       </div>
-      <button type="button" onClick={() => setVisible(false)} className="disaster-intro__skip">Enter ReliefGrid <ChevronRight /></button>
     </motion.div>
   )
 }

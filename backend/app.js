@@ -9,6 +9,8 @@ import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import ngoRoutes from "./routes/ngoRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import disasterRoutes from "./routes/disasterRoutes.js";
+import emergencyRoutes from "./routes/emergencyRoutes.js";
 
 const app = express();
 
@@ -21,6 +23,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.get("/api/health", (req, res) => {
@@ -38,5 +41,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/ngo", ngoRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/disasters", disasterRoutes);
+app.use("/api/emergency", emergencyRoutes);
 
 export default app;

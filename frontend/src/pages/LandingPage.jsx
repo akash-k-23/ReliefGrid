@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { motion, useReducedMotion } from 'motion/react'
@@ -10,18 +10,17 @@ import {
   Radio,
   ArrowRight,
   CheckCircle2,
-  ChevronRight,
   HeartPulse,
-  Droplet,
   Zap,
   ArrowDown
 } from 'lucide-react'
 
-import GhostFibersBackground from '../components/GhostFibersBackground'
 import ElectricBorder from '../components/ElectricBorder'
+import GhostFibersBackground from '../components/GhostFibersBackground'
 
 export default function LandingPage() {
   const [isRevealed, setIsRevealed] = useState(false)
+  const [activeInsight, setActiveInsight] = useState(null)
   const reduceMotion = useReducedMotion()
 
   useEffect(() => {
@@ -32,6 +31,50 @@ export default function LandingPage() {
     const revealTimer = window.setTimeout(() => setIsRevealed(true), 500)
     return () => window.clearTimeout(revealTimer)
   }, [reduceMotion])
+
+  const rainDrops = useMemo(() => Array.from({ length: 28 }, (_, index) => ({
+    left: `${((index * 11) % 100)}%`,
+    delay: `${(index * 0.28).toFixed(2)}s`,
+    duration: `${(0.95 + (index % 6) * 0.26).toFixed(2)}s`,
+    height: `${18 + (index % 9) * 8}px`,
+    opacity: 0.2 + (index % 6) * 0.12,
+  })), [])
+
+  const pipelineStages = [
+    {
+      id: 'people-in-need',
+      name: 'People In Need',
+      title: 'Distress signal ignition',
+      desc: 'Disaster victims transmit the exact location, urgency level, affected count, and critical resources needed so the first response layer can assess severity immediately.',
+      badge: 'Beacon Active',
+      color: 'text-red-400',
+      border: 'border-red-500/30',
+      bg: 'bg-red-950/20',
+      icon: ShieldAlert,
+    },
+    {
+      id: 'reliefgrid',
+      name: 'ReliefGrid',
+      title: 'Signal triage and matching',
+      desc: 'The central engine classifies incoming reports by geography, crisis type, and resource needs, then matches them with verified NGOs, volunteers, and stock availability.',
+      badge: 'Automated Triage Engine',
+      color: 'text-cyan-400',
+      border: 'border-cyan-500/30',
+      bg: 'bg-cyan-950/20',
+      icon: Radio,
+    },
+    {
+      id: 'response-partners',
+      name: 'NGOs • Volunteers • Donors',
+      title: 'Field deployment and support',
+      desc: 'Verified teams receive task-ready assignments and donors contribute targeted goods or funding, reducing duplication and making the response chain faster and more accountable.',
+      badge: 'Aid Delivered',
+      color: 'text-emerald-400',
+      border: 'border-emerald-500/30',
+      bg: 'bg-emerald-950/20',
+      icon: Users,
+    },
+  ]
 
   const steps = [
 
@@ -82,43 +125,30 @@ export default function LandingPage() {
   ]
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="landing-shell relative min-h-screen overflow-hidden">
       {!isRevealed && <div className="fixed inset-0 z-40 flex items-center justify-center bg-[#07111f]" role="status"><motion.div initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} className="text-center"><Radio className="mx-auto h-10 w-10 animate-pulse text-cyan-400" /><p className="mt-3 text-xs font-bold uppercase tracking-[0.3em] text-slate-400">ReliefGrid network</p></motion.div></div>}
-      {/* GhostFibers Interactive Particle & Fiber Canvas */}
+      <div className="landing-rain-scene" aria-hidden="true">
+        {!reduceMotion && rainDrops.map((drop, index) => (
+          <span
+            key={index}
+            className="landing-rain-drop"
+            style={{ left: drop.left, animationDelay: drop.delay, animationDuration: drop.duration, height: drop.height, opacity: drop.opacity }}
+          />
+        ))}
+        <span className="landing-lightning" />
+      </div>
       <GhostFibersBackground />
 
       {/* Hero Section */}
       <section className="relative pt-10 pb-20 md:pt-16 md:pb-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        {/* Floating Humanitarian Micro-Elements (Subtle Parallax Badges) */}
-        <div className="hidden xl:block absolute top-20 left-6 pointer-events-none">
-          <motion.div
-            animate={{ y: [-8, 8, -8], rotate: [-2, 2, -2] }}
-            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-            className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-md text-xs text-cyan-300 shadow-xl"
-          >
-            <div className="p-1.5 rounded-lg bg-cyan-500/20 text-cyan-400">
-              <Droplet className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="font-bold text-[11px] text-white">Potable Water Hubs</div>
-              <div className="text-[9px] text-slate-400">Puri &amp; Cuttack Sectors</div>
-            </div>
-          </motion.div>
-        </div>
-
         <div className="hidden xl:block absolute top-28 right-8 pointer-events-none">
           <motion.div
             animate={{ y: [8, -8, 8], rotate: [2, -2, 2] }}
             transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
             className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-slate-900/80 border border-slate-800 backdrop-blur-md text-xs text-red-300 shadow-xl"
           >
-            <div className="p-1.5 rounded-lg bg-red-500/20 text-red-400">
-              <HeartPulse className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="font-bold text-[11px] text-white">Emergency EMT Dispatch</div>
-              <div className="text-[9px] text-slate-400">Trauma Units Standby</div>
-            </div>
+            <div className="p-1.5 rounded-lg bg-red-500/20 text-red-400"><HeartPulse className="w-4 h-4" /></div>
+            <div><div className="font-bold text-[11px] text-white">Emergency EMT Dispatch</div><div className="text-[9px] text-slate-400">Trauma Units Standby</div></div>
           </motion.div>
         </div>
 
@@ -162,7 +192,7 @@ export default function LandingPage() {
             transition={{ duration: 0.6, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
             className="mt-6 text-base sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed"
           >
-            A unified humanitarian crisis coordination engine bridging flood, cyclone, and earthquake victims with accredited NGOs, field volunteers, and supply donors in real time.
+            When roads are cut and essential services falter, Relief Grid helps communities and response partners find one another and move practical help where it is needed.
           </motion.p>
 
           {/* Primary CTA Buttons Grid */}
@@ -181,7 +211,7 @@ export default function LandingPage() {
                   className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-bold text-sm sm:text-base shadow-xl shadow-red-950/80 transition-all"
                 >
                   <ShieldAlert className="w-5 h-5 animate-pulse" />
-                  <span>Login to Request Help</span>
+                  <span>Access response tools</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </motion.div>
               </ElectricBorder>
@@ -194,7 +224,7 @@ export default function LandingPage() {
                 className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-slate-900/85 hover:bg-slate-800 text-white font-semibold text-sm sm:text-base border border-slate-700/80 hover:border-cyan-500/50 shadow-lg backdrop-blur-md transition-all"
               >
                 <UserPlus className="w-5 h-5 text-cyan-400" />
-                <span>Register to Contribute</span>
+                <span>Join the response network</span>
               </motion.div>
             </Link>
 
@@ -211,22 +241,12 @@ export default function LandingPage() {
 
           </motion.div>
 
-          {/* Quick Awareness Quiz Shortcut */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.42 }}
             className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-400"
           >
-            <Link
-              to="/game"
-              className="flex items-center gap-1.5 hover:text-cyan-400 font-medium transition-colors bg-slate-900/60 px-3.5 py-1.5 rounded-full border border-slate-800 hover:border-purple-500/40"
-            >
-              <Gamepad2 className="w-4 h-4 text-purple-400" />
-              <span>Interactive Disaster Awareness &amp; Readiness Quiz</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
-
             <div className="flex items-center gap-2">
               <span>Are you an Organization?</span>
               <Link to="/register" className="text-cyan-400 hover:text-cyan-300 font-semibold underline underline-offset-2">
@@ -257,87 +277,86 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative">
-            {/* 1. People in Need */}
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              className="w-full md:w-1/3 p-5 rounded-2xl bg-slate-950/80 border border-red-500/30 text-center relative shadow-lg"
-            >
-              <div className="w-12 h-12 rounded-xl bg-red-950/60 border border-red-500/40 text-red-400 flex items-center justify-center mx-auto mb-3">
-                <ShieldAlert className="w-6 h-6 animate-pulse" />
-              </div>
-              <h4 className="font-bold text-white text-sm">People In Need</h4>
-              <p className="text-[11px] text-slate-400 mt-1">
-                Disaster victims broadcast localized SOS with coordinates, needed rations &amp; medical urgency.
-              </p>
-              <div className="mt-3 inline-block text-[10px] font-mono text-red-400 bg-red-950/60 px-2 py-0.5 rounded border border-red-500/20">
-                Beacon Active
-              </div>
-            </motion.div>
+            {pipelineStages.map((stage, index) => {
+              const Icon = stage.icon
+              const isLast = index === pipelineStages.length - 1
 
-            {/* Connecting Flow 1 */}
-            <div className="flex flex-col items-center justify-center text-cyan-400">
-              <motion.div
-                animate={{ y: [0, 6, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                className="hidden md:block"
-              >
-                <ArrowRight className="w-6 h-6 rotate-90 md:rotate-0" />
-              </motion.div>
-              <ArrowDown className="w-5 h-5 block md:hidden animate-bounce text-cyan-400" />
-              <span className="text-[9px] font-mono text-slate-500 uppercase mt-1">Intake</span>
-            </div>
+              return (
+                <div key={stage.id} className="contents">
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setActiveInsight(stage)}
+                    className={`group w-full md:w-1/3 p-5 rounded-2xl border text-center relative shadow-lg ${stage.bg} ${stage.border} transition-all`}
+                  >
+                    <div className={`w-12 h-12 rounded-xl border flex items-center justify-center mx-auto mb-3 ${stage.color} bg-slate-950/60 ${stage.border}`}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <h4 className="font-bold text-white text-sm md:text-base">{stage.name}</h4>
+                    <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
+                      {stage.title}
+                    </p>
+                    <div className={`mt-3 inline-block text-[10px] font-mono px-2 py-0.5 rounded border ${stage.border} ${stage.color} bg-slate-950/50`}>
+                      {stage.badge}
+                    </div>
+                  </motion.button>
 
-            {/* 2. ReliefGrid Central Hub */}
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="w-full md:w-1/3 p-5 rounded-2xl bg-gradient-to-b from-slate-900 to-cyan-950/50 border border-cyan-400/40 text-center relative shadow-2xl shadow-cyan-950"
-            >
-              <div className="w-12 h-12 rounded-xl bg-cyan-950/80 border border-cyan-400 text-cyan-300 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-cyan-500/20">
-                <Radio className="w-6 h-6 animate-spin" style={{ animationDuration: '8s' }} />
-              </div>
-              <h4 className="font-bold text-white text-base">
-                RELIEF<span className="text-cyan-400">GRID</span>
-              </h4>
-              <p className="text-[11px] text-slate-300 mt-1">
-                Intelligent geospatial classification, supply inventory matching, and verified credential dispatch.
-              </p>
-              <div className="mt-3 inline-block text-[10px] font-mono text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-500/30">
-                Automated Triage Engine
-              </div>
-            </motion.div>
-
-            {/* Connecting Flow 2 */}
-            <div className="flex flex-col items-center justify-center text-emerald-400">
-              <motion.div
-                animate={{ y: [0, 6, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.75 }}
-                className="hidden md:block"
-              >
-                <ArrowRight className="w-6 h-6 rotate-90 md:rotate-0" />
-              </motion.div>
-              <ArrowDown className="w-5 h-5 block md:hidden animate-bounce text-emerald-400" />
-              <span className="text-[9px] font-mono text-slate-500 uppercase mt-1">Dispatch</span>
-            </div>
-
-            {/* 3. NGOs + Volunteers + Donors */}
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              className="w-full md:w-1/3 p-5 rounded-2xl bg-slate-950/80 border border-emerald-500/30 text-center relative shadow-lg"
-            >
-              <div className="w-12 h-12 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto mb-3">
-                <Users className="w-6 h-6" />
-              </div>
-              <h4 className="font-bold text-white text-sm">NGOs • Volunteers • Donors</h4>
-              <p className="text-[11px] text-slate-400 mt-1">
-                Mobilized frontline teams arrive with targeted aid, preventing duplication and resource waste.
-              </p>
-              <div className="mt-3 inline-block text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/20">
-                Aid Delivered
-              </div>
-            </motion.div>
+                  {!isLast && (
+                    <div key={`${stage.id}-arrow`} className="flex flex-col items-center justify-center text-cyan-400">
+                      <motion.div
+                        animate={{ y: [0, 6, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: index * 0.2 }}
+                        className="hidden md:block"
+                      >
+                        <ArrowRight className="w-6 h-6 rotate-90 md:rotate-0" />
+                      </motion.div>
+                      <ArrowDown className="w-5 h-5 block md:hidden animate-bounce text-cyan-400" />
+                      <span className="text-[9px] font-mono text-slate-500 uppercase mt-1">{index === 0 ? 'Intake' : 'Dispatch'}</span>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </motion.div>
 
+      </section>
+
+      <div className="landing-water-flow" aria-hidden="true">
+        <span className="landing-water-flow__sheet" />
+        <span className="landing-water-flow__ripple landing-water-flow__ripple--one" />
+        <span className="landing-water-flow__ripple landing-water-flow__ripple--two" />
+        <span className="landing-water-flow__ripple landing-water-flow__ripple--three" />
+      </div>
+
+      <section className="landing-story-section mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 md:py-24">
+        <div className="mb-10 max-w-2xl">
+          <span className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-300">A clearer path through the crisis</span>
+          <h2 className="mt-3 text-3xl font-extrabold leading-tight text-white sm:text-5xl">When every minute matters, connection is critical.</h2>
+          <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300 sm:text-base">Relief Grid gives neighbors, volunteers, donors, and organizations a shared place to coordinate support when normal systems are under pressure.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          <article className="landing-story-card">
+            <span className="landing-story-card__index">01 / SEE THE NEED</span>
+            <h3>Make urgent needs visible</h3>
+            <p>People affected by a disaster can share relief requests and the essentials their household or community needs.</p>
+          </article>
+          <article className="landing-story-card">
+            <span className="landing-story-card__index">02 / CONNECT RESOURCES</span>
+            <h3>Bring help closer together</h3>
+            <p>Requests, live disaster information, volunteer opportunities, and relief resources meet in one coordinated response network.</p>
+          </article>
+          <article className="landing-story-card">
+            <span className="landing-story-card__index">03 / TAKE PART</span>
+            <h3>Every community can respond</h3>
+            <p>Anyone can register or log in. Registered people can request relief and contribute through available programs; NGOs can register to coordinate their response.</p>
+          </article>
+        </div>
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <Link to="/register" className="landing-story-link"><UserPlus className="h-4 w-4" /> Create an account <ArrowRight className="h-4 w-4" /></Link>
+          <Link to="/login" className="landing-story-secondary">Already registered? Sign in</Link>
+        </div>
       </section>
 
       {/* HOW RELIEFGRID WORKS — 4-STEP ANIMATED FLOW */}
@@ -359,14 +378,16 @@ export default function LandingPage() {
           {steps.map((step, idx) => {
             const Icon = step.icon
             return (
-              <motion.div
+              <motion.button
+                type="button"
                 key={step.num}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.12 }}
                 whileHover={{ y: -6 }}
-                className={`p-6 rounded-3xl border backdrop-blur-md ${step.bg} ${step.border} flex flex-col justify-between relative shadow-xl`}
+                onClick={() => setActiveInsight(step)}
+                className={`p-6 rounded-3xl border backdrop-blur-md ${step.bg} ${step.border} flex flex-col justify-between relative shadow-xl text-left`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -390,11 +411,43 @@ export default function LandingPage() {
                   <span>{step.badge}</span>
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 </div>
-              </motion.div>
+              </motion.button>
             )
           })}
         </div>
       </section>
+
+      {activeInsight && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 24 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            className="w-full max-w-lg rounded-[28px] border border-cyan-500/30 bg-slate-950/90 p-6 shadow-[0_30px_80px_rgba(34,211,238,0.23)]"
+          >
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl border ${activeInsight.border} bg-slate-900/80 ${activeInsight.color}`}>
+                  {(() => {
+                    const Icon = activeInsight.icon || Radio
+                    return <Icon className="h-5 w-5" />
+                  })()}
+                </span>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-300">ReliefGrid</p>
+                  <h3 className="mt-1 text-lg font-black text-white">{activeInsight.title || activeInsight.name}</h3>
+                </div>
+              </div>
+              <button type="button" onClick={() => setActiveInsight(null)} className="rounded-full border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs text-slate-200">Close</button>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Pipeline detail</p>
+              <p className="mt-3 text-sm leading-7 text-slate-200">{activeInsight.desc}</p>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Awareness Game Callout */}
       <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">

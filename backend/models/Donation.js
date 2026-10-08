@@ -8,9 +8,12 @@ const donationSchema = new mongoose.Schema(
     item: { type: String, required: true, trim: true },
     quantity: { type: String, required: true, trim: true },
     amount: { type: Number, min: 0, default: 0 },
+    volunteerNeeded: { type: Boolean, default: false },
+    volunteerOpportunity: { type: mongoose.Schema.Types.ObjectId, ref: "VolunteerOpportunity", default: null },
     message: { type: String, trim: true, maxlength: 1000, default: "" },
     location: { type: String, required: true, trim: true },
-    status: { type: String, enum: ["PLEDGED", "RECEIVED", "ALLOCATED", "CANCELLED"], default: "PLEDGED" }
+    status: { type: String, enum: ["PLEDGED", "RECEIVED", "ALLOCATED", "CANCELLED"], default: "PLEDGED" },
+    isDemoData: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

@@ -1,7 +1,7 @@
 ﻿import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
-import { Radio, Lock, Mail, Eye, EyeOff, LogIn, ArrowLeft, ShieldCheck, AlertCircle } from 'lucide-react'
+import { Radio, Lock, Mail, Eye, EyeOff, LogIn, ArrowLeft, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { apiFetch } from '../lib/api'
 
@@ -35,19 +35,22 @@ export default function LoginPage() {
         navigate('/home')
       }, 700)
     } catch (error) {
-      setSubmittedMessage(error.message)
+      const message = String(error.message || '').toLowerCase()
+      setSubmittedMessage(message.includes('invalid email or password') || message.includes('401')
+        ? 'Invalid email or password. Please check your credentials and try again.'
+        : 'We could not sign you in right now. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-[calc(100vh-12rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="auth-scene min-h-[calc(100vh-12rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="w-full max-w-md space-y-6"
+        className="auth-scene__content w-full max-w-md space-y-6"
       >
         <Link
           to="/"
@@ -57,7 +60,7 @@ export default function LoginPage() {
           <span>Back to Operations Center</span>
         </Link>
 
-        <div className="rounded-3xl bg-slate-900/80 border border-slate-800 p-8 backdrop-blur-xl shadow-2xl space-y-6">
+        <div className="auth-scene__card rounded-3xl bg-slate-900/80 border border-slate-800 p-8 backdrop-blur-xl shadow-2xl space-y-6">
           <div className="text-center space-y-2">
             <motion.div
               whileHover={{ scale: 1.06 }}
@@ -74,13 +77,6 @@ export default function LoginPage() {
 
             <p className="text-xs text-slate-400">
               Secure portal for disaster relief responders, verified NGOs, and volunteers.
-            </p>
-          </div>
-
-          <div className="p-3 rounded-xl bg-slate-950/70 border border-cyan-500/20 text-slate-300 text-xs flex items-start gap-2.5">
-            <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-            <p className="text-[11px] leading-relaxed text-slate-400">
-              <strong className="text-cyan-300">Secure Authentication:</strong> Your session is protected using an HTTP-only authentication cookie.
             </p>
           </div>
 
@@ -126,9 +122,6 @@ export default function LoginPage() {
                   Password
                 </label>
 
-                <Link to="/forgot-password" className="text-[11px] text-cyan-400 hover:text-cyan-300 font-medium transition-colors">
-                  Forgot password?
-                </Link>
               </div>
 
               <div className="relative rounded-xl border border-slate-700/80 bg-slate-950/70 focus-within:border-cyan-400 focus-within:ring-2 focus-within:ring-cyan-500/20 transition-all">

@@ -69,6 +69,20 @@ SMTP_USER=your-smtp-username
 SMTP_PASSWORD=your-smtp-password
 SMTP_FROM=ReliefGrid <no-reply@example.com>
 CLIENT_URL=http://localhost:5173
+PUBLIC_API_URL=http://localhost:5000
+SMS_PROVIDER=mock
+SMS_COUNTRY_CODE=IN
+SMS_SENDER_ID=
+SMS_DLT_TEMPLATE_ID=
+SMS_DLT_ENTITY_ID=
+EMERGENCY_SMS_TEMPLATE=ReliefGrid alert: {{title}} near {{location}}. {{url}} If you can help, open the request. Emergencies: 112.
+EMERGENCY_ALERT_MAX_RADIUS_KM=100
+SMS_MAX_ATTEMPTS=5
+SMS_MIN_INTERVAL_MS=1000
+SMS_WORKER_BATCH_SIZE=5
+ACHIEVEMENT_DONATION_THRESHOLDS=1,5,10,25,50
+ACHIEVEMENT_VOLUNTEER_THRESHOLDS=1,5,10,25,50
+ACHIEVEMENT_COMBINED_THRESHOLDS=1,5,15,30
 ```
 
 `frontend/.env`:
@@ -79,12 +93,32 @@ VITE_API_URL=http://localhost:5000
 
 Never commit `.env`. SMTP configuration is required for forgot-password requests for existing users. Reset tokens are hashed in MongoDB, expire after 15 minutes, and are invalidated after a successful reset.
 
+SMS delivery is disabled by default: `SMS_PROVIDER=mock` records `MOCKED`, never `SENT` or `DELIVERED`. For Twilio, set `SMS_PROVIDER=twilio`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and a registered `SMS_SENDER_ID`. For an India-compatible gateway, set `SMS_PROVIDER=gateway`, `SMS_GATEWAY_URL`, `SMS_GATEWAY_TOKEN`, and `SMS_GATEWAY_WEBHOOK_TOKEN`. Production India delivery also requires `SMS_DLT_TEMPLATE_ID` and `SMS_DLT_ENTITY_ID`; register the sender and exact message template with the provider/telecom operator and set `EMERGENCY_SMS_TEMPLATE` to match that approved template. Configure `PUBLIC_API_URL` for delivery callbacks. Phone verification requires a live provider and a user phone number in E.164 format. Users must explicitly verify and opt in before alert sends.
+
+Configure achievement thresholds as ascending comma-separated integers with the same number of entries as each badge family (five donations, five volunteer badges, four combined badges). Badges are awarded from backend verified donations and completed activities only.
+
 ## Verification
 
 ```bash
 npm --prefix frontend run build
 npm --prefix frontend run lint
+npm test
 ```
+
+After deploying the schema changes, backfill existing request coordinates and create the spatial indexes once:
+
+```powershell
+npm --prefix backend run migrate:emergency-geo
+```
+
+The migration is batched and repeatable. Mongoose schemas also declare the indexes for new deployments. Back up MongoDB before production migrations.
+
+## Emergency APIs
+
+- `GET /api/users/me/impact`, `/contributions`, and `/achievements` are authenticated and scoped to the session user.
+- `GET /api/emergency/contacts` is public; emergency preference, phone verification, nearby help, alert history, and responses require authentication.
+- `/api/admin/emergency-alerts`, `/api/admin/emergency-contacts`, and achievement recalculation require the `ADMIN` role.
+- Emergency SMS records distinguish `MOCKED`, provider-accepted `SENT`, and callback-confirmed `DELIVERED`. A successful provider API response alone is not a delivery confirmation.
 
 The API is available at `http://localhost:5000/api` and the frontend at `http://localhost:5173` during development.
 
